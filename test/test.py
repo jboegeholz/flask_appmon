@@ -1,30 +1,35 @@
 import unittest
 
-from test.test_app import app_under_test
+from test_app import app_under_test
+from appmon.appmon import app_mon
 
 
-class FlaskBookshelfTests(unittest.TestCase):
+class AppMonTest(unittest.TestCase):
     def setUp(self):
-        # creates a test client
+        # creates app under test
         self.app_under_test = app_under_test.test_client()
-        # propagate the exceptions to the test client
         self.app_under_test.testing = True
+
+        # create app mon
+        self.app_mon = app_mon.test_client()
+        self.app_mon.testing = True
 
     def tearDown(self):
         pass
 
-    def test_home_status_code(self):
-        # sends HTTP GET request to the application
-        # on the specified path
-        result = self.app_under_test.get('/')
-
-        # assert the status code of the response
+    def test_list_routes(self):
+        # an app under test must implement an endpoint which returns all routes
+        result = self.app_under_test.get('/list_routes')
         self.assertEqual(result.status_code, 200)
 
-    def test_home_data(self):
-        # sends HTTP GET request to the application
-        # on the specified path
-        result = self.app_under_test.get('/')
+    def test_register_app(self):
+        result = self.app_mon.post("register_app", data=dict(app_name='app_under_test', port='127.0.0.1:5000'))
+        self.assertEqual(result.status_code, 200)
 
-        # assert the response data
-        self.assertEqual(result.data, "Hello World")
+    def test_get_aut_routes(self):
+        # lets appmon call the list_routes endpoint from aut
+        self.app_mon.post("register_app", data=dict(app_name='app_under_test', port='127.0.0.1:5000'))
+        result = self.app_mon.get("get_routes")
+        self.assertEqual(result.status_code, 200)
+
+

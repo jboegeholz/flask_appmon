@@ -1,4 +1,4 @@
-from flask import Flask, g, request, url_for
+from flask import Flask, g, request, url_for, jsonify
 from functools import wraps
 
 import time
@@ -27,6 +27,12 @@ def after_request(response):
 @app_under_test.route("/")
 @monitor
 def index():
+    return "Hello World!"
+
+
+@app_under_test.route("/long_running_endpoint")
+@monitor
+def long_running_endpoint():
     time.sleep(3)
     return "Hello World!"
 
@@ -46,7 +52,7 @@ def list_routes():
         output.append(line)
 
     print output
-    return "Routes"
+    return jsonify(output)
 
 
 if __name__ == "__main__":
