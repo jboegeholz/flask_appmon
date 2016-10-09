@@ -56,4 +56,4 @@ def list_routes():
 
 
 if __name__ == "__main__":
-    app_under_test.run(debug=True)
+    app_under_test.run(debug=True, port=3030)

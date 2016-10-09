@@ -1,4 +1,6 @@
+import json
 import unittest
+import datetime
 
 from test_app import app_under_test
 from appmon.appmon import app_mon
@@ -29,7 +31,24 @@ class AppMonTest(unittest.TestCase):
     def test_get_aut_routes(self):
         # lets appmon call the list_routes endpoint from aut
         self.app_mon.post("register_app", data=dict(app_name='app_under_test', port='127.0.0.1:5000'))
-        result = self.app_mon.get("get_routes")
+        result = self.app_mon.get("/get_routes")
         self.assertEqual(result.status_code, 200)
+
+    def test_receive_data(self):
+        self.app_mon.post("receive_data", data=dict(app="app_under_test", endpoint='/index', type="start", timestamp=datetime.datetime.now()))
+        self.app_mon.post("receive_data", data=dict(app="app_under_test", endpoint='/index', type="stop", timestamp=datetime.datetime.now()))
+        result = self.app_mon.get("/get_hit_count?app=app_under_test&endpoint=/index")
+        self.assertEqual(result.status_code, 200)
+        assert json.loads(result.data)["hit_count"] == 1
+
+    def test_receive_data_two_times(self):
+        self.app_mon.post("receive_data", data=dict(app="app_under_test", endpoint='/index', type="start", timestamp=datetime.datetime.now()))
+        self.app_mon.post("receive_data", data=dict(app="app_under_test", endpoint='/index', type="stop", timestamp=datetime.datetime.now()))
+        self.app_mon.post("receive_data", data=dict(app="app_under_test", endpoint='/index', type="start", timestamp=datetime.datetime.now()))
+        self.app_mon.post("receive_data", data=dict(app="app_under_test", endpoint='/index', type="stop", timestamp=datetime.datetime.now()))
+        result = self.app_mon.get("/get_hit_count?app=app_under_test&endpoint=/index")
+        self.assertEqual(result.status_code, 200)
+        assert json.loads(result.data)["hit_count"] == 2
+
 
 
