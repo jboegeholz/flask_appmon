@@ -1,7 +1,8 @@
 import urllib2
 import json
 from flask import Flask, request, render_template, jsonify
-from Application import Application
+from ApplicationForm import ApplicationForm
+from flask import abort
 
 app_mon = Flask(__name__)
 
@@ -9,7 +10,7 @@ data = {}
 
 @app_mon.route("/register_app", methods=["POST", "GET"])
 def register_app():
-    form = Application(request.form)
+    form = ApplicationForm(request.form)
     if request.method == 'POST' and form.validate():
 
         pass
@@ -29,6 +30,9 @@ def receive_data():
     Receives the data from the app under monitoring
     :return:
     """
+    if "app" not in request.form or "endpoint" not in request.form:
+        abort(404)
+
     app = request.form["app"]
     endpoint = request.form["endpoint"]
     timestamp = request.form["timestamp"]
