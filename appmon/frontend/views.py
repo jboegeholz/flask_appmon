@@ -1,14 +1,12 @@
 import urllib2
-import json
-from flask import Flask, request, render_template, jsonify
-from ApplicationForm import ApplicationForm
+from flask import request, render_template, jsonify, Blueprint
+from appmon.forms import ApplicationForm
 from flask import abort
-
-app_mon = Flask(__name__)
-
 data = {}
 
-@app_mon.route("/register_app", methods=["POST", "GET"])
+frontend = Blueprint('frontend', __name__)
+
+@frontend.route("/register_app", methods=["POST", "GET"])
 def register_app():
     form = ApplicationForm(request.form)
     if request.method == 'POST' and form.validate():
@@ -16,7 +14,7 @@ def register_app():
         pass
     return render_template("register_app.html", form=form)
 
-@app_mon.route("/get_routes", methods=["GET"])
+@frontend.route("/get_routes", methods=["GET"])
 def get_routes():
     response = urllib2.urlopen("http://" + data["port"] + "/list_routes")
     if response.msg == "OK":
@@ -24,7 +22,7 @@ def get_routes():
 
     return "Ok"
 
-@app_mon.route("/receive_data", methods=["POST"])
+@frontend.route("/receive_data", methods=["POST"])
 def receive_data():
     """
     Receives the data from the app under monitoring
@@ -48,7 +46,7 @@ def receive_data():
         data[app][endpoint]["hit_count"] += 1
     return "Ok"
 
-@app_mon.route("/get_hit_count", methods=["GET"])
+@frontend.route("/_get_hit_count", methods=["GET"])
 def get_hit_count():
     print "get_hit_count"
     args = request.args
@@ -56,5 +54,6 @@ def get_hit_count():
     hit_count = data[args["app"]][args["endpoint"]]["hit_count"]
     return jsonify(hit_count=hit_count)
 
-if __name__ == '__main__':
-    app_mon.run(port=8080)
+@frontend.route("/hit_count")
+def hit_count():
+    return render_template("show_hit_count.html")
