@@ -2,6 +2,8 @@ import urllib2
 from flask import request, render_template, jsonify, Blueprint
 from appmon.forms import ApplicationForm
 from flask import abort
+from appmon.frontend.models import HitCount
+
 data = {}
 
 frontend = Blueprint('frontend', __name__)
@@ -37,6 +39,8 @@ def receive_data():
     type = request.form["type"]
     print app, endpoint, type, timestamp
 
+
+
     if app not in data:
         data[app] = {}
 
@@ -51,7 +55,8 @@ def get_hit_count():
     print "get_hit_count"
     args = request.args
     print args
-    hit_count = data[args["app"]][args["endpoint"]]["hit_count"]
+    # hit_count = data[args["app"]][args["endpoint"]]["hit_count"]
+    hit_count = HitCount.query().filter(app=args["app"]).filter(endpoint=args["endpoint"]).one()
     return jsonify(hit_count=hit_count)
 
 @frontend.route("/hit_count")
